@@ -30,6 +30,7 @@ type HelmChartSpec struct {
 	JobImage        string                        `json:"jobImage,omitempty"`
 	Timeout         *metav1.Duration              `json:"timeout,omitempty"`
 	FailurePolicy   string                        `json:"failurePolicy,omitempty"`
+	DryRun          string                        `json:"dryRun,omitempty"`
 }
 
 type HelmChartStatus struct {
