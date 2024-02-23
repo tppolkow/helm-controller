@@ -245,6 +245,12 @@ func job(chart *helmv1.HelmChart) (*batch.Job, *core.ConfigMap, *core.ConfigMap)
 		targetNamespace = chart.Spec.TargetNamespace
 	}
 
+	// for dry run, we don't want to keep retrying the job
+	backOffLimit := pointer.Int32Ptr(1000)
+	if chart.Spec.DryRun != "" {
+		backOffLimit = pointer.Int32Ptr(1)
+	}
+
 	job := &batch.Job{
 		TypeMeta: meta.TypeMeta{
 			APIVersion: "batch/v1",
@@ -258,7 +264,7 @@ func job(chart *helmv1.HelmChart) (*batch.Job, *core.ConfigMap, *core.ConfigMap)
 			},
 		},
 		Spec: batch.JobSpec{
-			BackoffLimit: pointer.Int32Ptr(1000),
+			BackoffLimit: backOffLimit,
 			Template: core.PodTemplateSpec{
 				ObjectMeta: meta.ObjectMeta{
 					Annotations: map[string]string{},
@@ -461,6 +467,10 @@ func args(chart *helmv1.HelmChart) []string {
 	}
 	if spec.Version != "" {
 		args = append(args, "--version", spec.Version)
+	}
+
+	if spec.DryRun != "" {
+		args = append(args, fmt.Sprintf("--dry-run=%s", spec.DryRun))
 	}
 
 	for _, k := range keys(spec.Set) {
